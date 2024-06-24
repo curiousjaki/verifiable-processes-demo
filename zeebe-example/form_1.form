@@ -1,0 +1,43 @@
+{
+  "components": [
+    {
+      "label": "Text area",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_00uc64k",
+        "columns": null
+      },
+      "id": "Field_1t3tnkh",
+      "key": "textarea_xopdbo"
+    },
+    {
+      "label": "Checkbox",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_1i137pd",
+        "columns": null
+      },
+      "id": "Field_19ldxbm",
+      "key": "checkbox_20ils"
+    },
+    {
+      "action": "submit",
+      "label": "Button",
+      "type": "button",
+      "layout": {
+        "row": "Row_0udb694",
+        "columns": null
+      },
+      "id": "Field_0veimsn"
+    }
+  ],
+  "type": "default",
+  "id": "Form_1ns2r8t",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.4.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.19.0"
+  },
+  "schemaVersion": 14
+}
