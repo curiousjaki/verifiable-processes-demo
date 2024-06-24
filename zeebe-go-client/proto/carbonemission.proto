@@ -1,0 +1,16 @@
+syntax = "proto3";
+package carbonemission;
+option go_package = "github.com/ciphersmaug/verifiable-process/zeebe-go-client";
+
+service CarbonEmission {
+    rpc prove_carbon_emission(EmissionProofRequest) returns (EmissionProofResponse);
+}
+
+message EmissionProofRequest {
+    uint32 consumption = 1;
+    uint32 emission_factor = 2;
+}
+
+message EmissionProofResponse {
+    string co2_emissions = 1;
+}
