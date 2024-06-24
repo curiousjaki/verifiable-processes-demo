@@ -97,7 +97,9 @@ func handleJob(client worker.JobClient, job entities.Job) {
 		return
 	}
 
-	variables["totalPrice"] = 46.50
+	var test1 = ProofCarbonEmissionRequest(12, 23)
+
+	variables["totalPrice"] = test1
 	request, err := client.NewCompleteJobCommand().JobKey(jobKey).VariablesFromMap(variables)
 	if err != nil {
 		// failed to set the updated variables

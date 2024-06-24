@@ -20,8 +20,13 @@ var request = zeebe_go_client.EmissionProofRequest{
 	EmissionFactor: 10,
 }
 
-func main() {
-	flag.Parse()
+func ProofCarbonEmissionRequest(consump uint32, emissionfac uint32) string {
+
+	request = zeebe_go_client.EmissionProofRequest{
+		Consumption:    uint32(consump),
+		EmissionFactor: uint32(emissionfac),
+	}
+
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -39,4 +44,5 @@ func main() {
 		log.Fatalf("could not greet: %v", err)
 	}
 	log.Printf("Greeting: %s", r.Co2Emissions)
+	return r.Co2Emissions
 }
