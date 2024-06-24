@@ -5,52 +5,98 @@ use methods::{
 };
 use risc0_zkvm::{default_prover, ExecutorEnv};
 
-fn main() {
-    // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
-    tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
-        .init();
 
-    // An executor environment describes the configurations for the zkVM
-    // including program inputs.
-    // An default ExecutorEnv can be created like so:
-    // `let env = ExecutorEnv::builder().build().unwrap();`
-    // However, this `env` does not have any inputs.
-    //
-    // To add add guest input to the executor environment, use
-    // ExecutorEnvBuilder::write().
-    // To access this method, you'll need to use ExecutorEnv::builder(), which
-    // creates an ExecutorEnvBuilder. When you're done adding input, call
-    // ExecutorEnvBuilder::build().
+use tonic::{transport::Server, Request, Response, Status};
 
-    // For example:
-    let consumption: u32 = 2;
-    let emission_factor: u32 = 10;
-    let env = ExecutorEnv::builder()
-        .write(&consumption)
-        .unwrap()
-        .write(&emission_factor)
-        .unwrap()
-        .build()
-        .unwrap();
 
-    // Obtain the default prover.
-    let prover = default_prover();
+// # proto is the package name that is defined in the proto/carbonemissions.proto file
+use proto::carbon_emission_server::{CarbonEmission, CarbonEmissionServer};
+use proto::{EmissionProofRequest, EmissionProofResponse};
 
-    // Produce a receipt by proving the specified ELF binary.
-    let receipt = prover
-        .prove(env, CARBON_ACCOUNTING_ELF)
-        .unwrap();
-
-    // TODO: Implement code for retrieving receipt journal here.
-
-    // For example:
-    let _output : (u32,u32) = receipt.journal.decode().unwrap();
-    print!("Emissions {} kgCO2e/kwh,  Emission Factor {} 10 * kgC02e/kwh",_output.0,_output.1);
-
-    // The receipt was verified at the end of proving, but the below code is an
-    // example of how someone else could verify this receipt.
-    receipt
-        .verify(CARBON_ACCOUNTING_ID)
-        .unwrap();
+pub mod proto {
+    tonic::include_proto!("carbonemission");
 }
+
+
+#[derive(Debug, Default)]
+pub struct CarbonEmissionService {}
+
+#[tonic::async_trait]
+impl CarbonEmission for CarbonEmissionService {
+    async fn prove_carbon_emission(
+        &self,
+        request: Request<EmissionProofRequest>,
+    ) -> Result<Response<EmissionProofResponse>, Status> {
+        println!("Got a request: {:?}", request);
+
+        let response = EmissionProofResponse {
+            co2_emissions: format!("Hello {}!", request.into_inner().consumption),
+        };
+
+        Ok(Response::new(response))
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let addr = "[::1]:50051".parse()?;
+    let emission_service = CarbonEmissionService::default();
+
+    Server::builder()
+        .add_service(CarbonEmissionServer::new(emission_service))
+        .serve(addr)
+        .await?;
+    Ok(())
+}
+
+
+//fn main() {
+//    // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
+//    tracing_subscriber::fmt()
+//        .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
+//        .init();
+//
+//    // An executor environment describes the configurations for the zkVM
+//    // including program inputs.
+//    // An default ExecutorEnv can be created like so:
+//    // `let env = ExecutorEnv::builder().build().unwrap();`
+//    // However, this `env` does not have any inputs.
+//    //
+//    // To add add guest input to the executor environment, use
+//    // ExecutorEnvBuilder::write().
+//    // To access this method, you'll need to use ExecutorEnv::builder(), which
+//    // creates an ExecutorEnvBuilder. When you're done adding input, call
+//    // ExecutorEnvBuilder::build().
+//
+//    // For example:
+//    let consumption: u32 = 2;
+//    let emission_factor: u32 = 10;
+//    let env = ExecutorEnv::builder()
+//        .write(&consumption)
+//        .unwrap()
+//        .write(&emission_factor)
+//        .unwrap()
+//        .build()
+//        .unwrap();
+//
+//    // Obtain the default prover.
+//    let prover = default_prover();
+//
+//    // Produce a receipt by proving the specified ELF binary.
+//    let receipt = prover
+//        .prove(env, CARBON_ACCOUNTING_ELF)
+//        .unwrap();
+//
+//    // TODO: Implement code for retrieving receipt journal here.
+//
+//    // For example:
+//    let _output : (u32,u32) = receipt.journal.decode().unwrap();
+//    print!("Emissions {} kgCO2e/kwh,  Emission Factor {} 10 * kgC02e/kwh",_output.0,_output.1);
+//
+//    // The receipt was verified at the end of proving, but the below code is an
+//    // example of how someone else could verify this receipt.
+//    receipt
+//        .verify(CARBON_ACCOUNTING_ID)
+//        .unwrap();
+//}
+//

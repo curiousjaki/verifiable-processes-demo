@@ -3,8 +3,22 @@ name = "host"
 version = "0.1.0"
 edition = "2021"
 
+[build-dependencies]
+tonic-build = "0.11"
+
 [dependencies]
 methods = { path = "../methods" }
 risc0-zkvm = { version = "0.21.0" }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 serde = "1.0"
+tonic = "0.11"
+prost = "0.12"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+
+[[bin]] # Bin to run the Emission gRPC server
+name = "emission-server"
+path = "src/main.rs"
+
+[[bin]] # Bin to run the HelloWorld gRPC client
+name = "emission-client"
+path = "src/client.rs"
