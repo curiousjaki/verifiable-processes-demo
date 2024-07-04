@@ -3,52 +3,68 @@
 use methods::{
     CARBON_ACCOUNTING_ELF, CARBON_ACCOUNTING_ID
 };
-use risc0_zkvm::{default_prover, ExecutorEnv};
-
-
+//use risc0_zkvm::sha::rust_crypto::Digest;
+use risc0_zkvm::{default_prover, ExecutorEnv, Receipt};
+//use risc0_zkvm::sha::Digest;
+use std::error::Error;
 use tonic::{transport::Server, Request, Response, Status};
+use proto::verifiable_processing_service_server::{VerifiableProcessingService, VerifiableProcessingServiceServer};
+use proto::{ProveRequest, ProveResponse, VerifyRequest, VerifyResponse};
 
-
-// # proto is the package name that is defined in the proto/carbonemissions.proto file
-use proto::carbon_emission_server::{CarbonEmission, CarbonEmissionServer};
-use proto::{EmissionProofRequest, EmissionProofResponse};
+use std::fs::File;
+use std::io::{self, Write};
 
 pub mod proto {
-    tonic::include_proto!("carbonemission");
+    tonic::include_proto!("verifiableprocessing");
 }
 
+fn convert_to_receipt(receipt_bytes: Vec<u8>) -> Result<Receipt, Box<dyn Error>> {
+    match bincode::deserialize::<Receipt>(&receipt_bytes) {
+        Ok(my_data) => {
+            //println!("Deserialized Data: {:?}", my_data);
+            Ok(my_data)
+        }
+        Err(e) => {
+            //eprintln!("Error deserializing: {:?}", e);
+            Err(Box::new(e))
+        }
+    }
+}
 
-#[derive(Debug, Default)]
-pub struct CarbonEmissionService {}
+fn print_type_of<T>(_: &T) {
+    println!("{}", std::any::type_name::<T>())
+}
+
+fn write_vec_to_file(filename: &str, data: Vec<u8>) -> io::Result<()> {
+    // Open the file in write-only mode, returns `io::Result<File>`
+    let mut file = File::create(filename)?;
+
+    // Write the vector to the file, returns `io::Result<()>`
+    file.write_all(&data)?;
+
+    Ok(())
+}
+
+#[derive(Default)]
+pub struct MyVerifiableProcessingService {}
 
 #[tonic::async_trait]
-impl CarbonEmission for CarbonEmissionService {
-    async fn prove_carbon_emission(
+impl VerifiableProcessingService for MyVerifiableProcessingService {
+    async fn prove_execution(
         &self,
-        request: Request<EmissionProofRequest>,
-    ) -> Result<Response<EmissionProofResponse>, Status> {
-
-        println!("Got a request: {:?}", request);
-        // An executor environment describes the configurations for the zkVM
-        // including program inputs.
-        // An default ExecutorEnv can be created like so:
-        // `let env = ExecutorEnv::builder().build().unwrap();`
-        // However, this `env` does not have any inputs.
-        //
-        // To add add guest input to the executor environment, use
-        // ExecutorEnvBuilder::write().
-        // To access this method, you'll need to use ExecutorEnv::builder(), which
-        // creates an ExecutorEnvBuilder. When you're done adding input, call
-        // ExecutorEnvBuilder::build().
-
-        // For example:
-        let consumption: u32 = request.get_ref().consumption;
-        let emission_factor: u32 = request.get_ref().emission_factor;
+        request: Request<ProveRequest>,
+    ) -> Result<Response<ProveResponse>, Status> {
+        let req = request.into_inner();
+        //println!("{:?}",req);
+        // Implement your logic here
+        //let response_value = req.variable_a + req.variable_b; // Example logic
+        let image_id = req.image_id;
+        //let receipt = vec![]; // Placeholder for actual receipt generation
 
         let env = ExecutorEnv::builder()
-            .write(&consumption)
+            .write(&req.variable_a)
             .unwrap()
-            .write(&emission_factor)
+            .write(&req.variable_b)
             .unwrap()
             .build()
             .unwrap();
@@ -64,38 +80,67 @@ impl CarbonEmission for CarbonEmissionService {
         // TODO: Implement code for retrieving receipt journal here.
 
         // For example:
-        let _output : (u32,u32) = receipt.journal.decode().unwrap();
-        print!("Emissions {} kgCO2e/kwh,  Emission Factor {} * kgC02e/kwh",_output.0,_output.1);
+        let response_value : f64 = receipt.journal.decode().unwrap();
+        //write_vec_to_file("prove.txt", bincode::serialize(&receipt).unwrap()).expect("whatever");
+        //print_type_of(&bincode::serialize(&receipt).unwrap());
 
+        let reply = ProveResponse {
+            response_value,
+            image_id: CARBON_ACCOUNTING_ID.to_vec(),
+            receipt: bincode::serialize(&receipt).unwrap(),
+        };
+        //println!("{:?}",reply);
+
+        Ok(Response::new(reply))
+    }
+
+    async fn verify_execution(
+        &self,
+        request: Request<VerifyRequest>,
+    ) -> Result<Response<VerifyResponse>, Status> {
+        let req = request.into_inner();
+        //println!("{:?}",req);
+        let verification_value = req.verification_value;
+        if req.image_id.len() != 8 {
+            panic!("image_id must contain exactly 8 elements");
+        }
+        let image_id : [u32; 8] = req.image_id.try_into().expect("Failed to convert Vec<u32> to [u32; 8]");
+        //print_type_of(&req.receipt);
+        //write_vec_to_file("verify.txt", req.receipt.clone());
+        let receipt = convert_to_receipt(req.receipt).expect("Somehow the receipt convertion didnt work");
+        //println!("{:?}",&receipt);
+        //let is_valid_executed: bool = true; // Example logic
         // The receipt was verified at the end of proving, but the below code is an
         // example of how someone else could verify this receipt.
-        receipt
-            .verify(CARBON_ACCOUNTING_ID)
-            .unwrap();
-        
-
-        let response = EmissionProofResponse {
-            co2_emissions: format!("Emissions {} kgCO2e/kwh,  Emission Factor {} * kgC02e/kwh",_output.0,_output.1),
-        };
-
-        Ok(Response::new(response))
+        let verification_result = receipt.verify(image_id);
+        let reply : VerifyResponse;
+        match verification_result {
+            Ok(_) => {
+                reply = VerifyResponse { is_valid_executed: true };
+            }
+            Err(err) => {
+                // Handle the error appropriately
+                reply = VerifyResponse { is_valid_executed: false };
+                println!("{:?}",err)
+                
+                // Optionally return early, panic, or perform recovery actions
+            }
+        }
+        Ok(Response::new(reply))
     }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
-    tracing_subscriber::fmt()
-    .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
-    .init();
+    let addr = "[::1]:50051".parse().unwrap();
+    let verifiable_processing_service = MyVerifiableProcessingService::default();
 
-
-    let addr = "[::1]:50051".parse()?;
-    let emission_service = CarbonEmissionService::default();
+    println!("VerifiableProcessingServiceServer listening on {}", addr);
 
     Server::builder()
-        .add_service(CarbonEmissionServer::new(emission_service))
+        .add_service(VerifiableProcessingServiceServer::new(verifiable_processing_service))
         .serve(addr)
         .await?;
+
     Ok(())
 }
