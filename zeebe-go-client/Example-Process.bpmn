@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1msosok" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.19.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.4.0">
+  <bpmn:error id="Error_1kmg69a" name="Receipt doesnt verify" errorCode="412" />
+  <bpmn:collaboration id="Collaboration_1x0ib00">
+    <bpmn:participant id="Participant_0h9ee9y" name="Data Consumer" processRef="verification-process" />
+    <bpmn:participant id="Participant_0vfzoad" name="Data Producer" processRef="Process_1jwdznk" />
+    <bpmn:messageFlow id="Flow_0za4yy4" sourceRef="task-prove-values" targetRef="task-verify-values" />
+    <bpmn:group id="Group_182fafa" categoryValueRef="CategoryValue_1hksqkq" />
+  </bpmn:collaboration>
+  <bpmn:process id="verification-process" isExecutable="true">
+    <bpmn:dataObjectReference id="DataObjectReference_043tier" name="Verification Key" dataObjectRef="DataObject_03rwyti" />
+    <bpmn:dataObject id="DataObject_03rwyti" />
+    <bpmn:exclusiveGateway id="x-or-gateway" name="Verification Succeeds?" default="Flow_01mc20n">
+      <bpmn:incoming>FlowPreGateway</bpmn:incoming>
+      <bpmn:outgoing>FlowA</bpmn:outgoing>
+      <bpmn:outgoing>Flow_01mc20n</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateThrowEvent id="event-receipt-verified" name="receipt verified">
+      <bpmn:incoming>FlowA</bpmn:incoming>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:endEvent id="event-receipt-cant-verify" name="verification         error">
+      <bpmn:incoming>Flow_01mc20n</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0hyfwum" errorRef="Error_1kmg69a" />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="FlowPreGateway" sourceRef="task-verify-values" targetRef="x-or-gateway" />
+    <bpmn:sequenceFlow id="FlowA" sourceRef="x-or-gateway" targetRef="event-receipt-verified">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=is_valid_executed=true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_01mc20n" sourceRef="x-or-gateway" targetRef="event-receipt-cant-verify" />
+    <bpmn:serviceTask id="task-verify-values" name="Verify Computation">
+      <bpmn:outgoing>FlowPreGateway</bpmn:outgoing>
+      <bpmn:property id="Property_1igacyx" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_0a5ja4e">
+        <bpmn:sourceRef>DataObjectReference_043tier</bpmn:sourceRef>
+        <bpmn:targetRef>Property_1igacyx</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+      <bpmn:dataInputAssociation id="DataInputAssociation_0qcb4uz">
+        <bpmn:sourceRef>DataObjectReference_1jmby46</bpmn:sourceRef>
+        <bpmn:targetRef>Property_1igacyx</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmn:process id="Process_1jwdznk" isExecutable="false">
+    <bpmn:startEvent id="Event_1jgk46k">
+      <bpmn:outgoing>Flow_1ovp34k</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1ovp34k" sourceRef="Event_1jgk46k" targetRef="task-prove-values" />
+    <bpmn:dataObjectReference id="DataObjectReference_0wy5xm9" name="Private Inputs" dataObjectRef="DataObject_053ayro" />
+    <bpmn:dataObject id="DataObject_053ayro" />
+    <bpmn:dataObjectReference id="DataObjectReference_1uo1kjp" name="Proving Key" dataObjectRef="DataObject_1p0wlkh" />
+    <bpmn:dataObject id="DataObject_1p0wlkh" />
+    <bpmn:dataObjectReference id="DataObjectReference_08izjmz" name="Proving Logic" dataObjectRef="DataObject_0sa78tv" />
+    <bpmn:dataObject id="DataObject_0sa78tv" />
+    <bpmn:dataObjectReference id="DataObjectReference_1jmby46" name="Public Outputs" dataObjectRef="DataObject_0b0bqt3" />
+    <bpmn:dataObject id="DataObject_0b0bqt3" />
+    <bpmn:serviceTask id="task-prove-values" name="Prove Computation">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="proving-service" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=3" target="variable_a" />
+          <zeebe:input source="=30" target="variable_b" />
+          <zeebe:input source="=&#34;multiply&#34;" target="operation" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="image_id" value="&#34;&#34;" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1ovp34k</bpmn:incoming>
+      <bpmn:property id="Property_0q1wdr5" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_0yx26qv">
+        <bpmn:sourceRef>DataObjectReference_1uo1kjp</bpmn:sourceRef>
+        <bpmn:targetRef>Property_0q1wdr5</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+      <bpmn:dataInputAssociation id="DataInputAssociation_01b1b31">
+        <bpmn:sourceRef>DataObjectReference_08izjmz</bpmn:sourceRef>
+        <bpmn:targetRef>Property_0q1wdr5</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+      <bpmn:dataInputAssociation id="DataInputAssociation_0v3xdc7">
+        <bpmn:sourceRef>DataObjectReference_0wy5xm9</bpmn:sourceRef>
+        <bpmn:targetRef>Property_0q1wdr5</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1clw500">
+        <bpmn:targetRef>DataObjectReference_1jmby46</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmn:category id="Category_04igjyu">
+    <bpmn:categoryValue id="CategoryValue_1hksqkq" value="Sensitive data exchange" />
+  </bpmn:category>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1x0ib00">
+      <bpmndi:BPMNShape id="Participant_0vfzoad_di" bpmnElement="Participant_0vfzoad" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="330" height="200" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1jgk46k_di" bpmnElement="Event_1jgk46k">
+        <dc:Bounds x="202" y="202" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_0wy5xm9_di" bpmnElement="DataObjectReference_0wy5xm9">
+        <dc:Bounds x="222" y="105" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="196" y="83" width="68" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_1uo1kjp_di" bpmnElement="DataObjectReference_1uo1kjp">
+        <dc:Bounds x="362" y="105" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="352" y="83" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1k588uo" bpmnElement="DataObjectReference_08izjmz">
+        <dc:Bounds x="287" y="105" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="272" y="83" width="67" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_1jmby46_di" bpmnElement="DataObjectReference_1jmby46">
+        <dc:Bounds x="432" y="105" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="416" y="83" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_11nemot_di" bpmnElement="task-prove-values">
+        <dc:Bounds x="260" y="180" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1ovp34k_di" bpmnElement="Flow_1ovp34k">
+        <di:waypoint x="238" y="220" />
+        <di:waypoint x="260" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_0h9ee9y_di" bpmnElement="Participant_0h9ee9y" isHorizontal="true">
+        <dc:Bounds x="500" y="80" width="300" height="200" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1pkag82" bpmnElement="DataObjectReference_043tier">
+        <dc:Bounds x="592" y="105" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="573" y="81" width="76" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_01w2u8t_di" bpmnElement="x-or-gateway" isMarkerVisible="true">
+        <dc:Bounds x="665" y="195" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="662.5" y="246" width="55" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0r757y0_di" bpmnElement="event-receipt-verified">
+        <dc:Bounds x="742" y="202" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="724" y="178" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0eps209_di" bpmnElement="event-receipt-cant-verify">
+        <dc:Bounds x="672" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="662" y="94.5" width="56" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_01ishxf_di" bpmnElement="task-verify-values">
+        <dc:Bounds x="547" y="180" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0npcmcd_di" bpmnElement="FlowPreGateway">
+        <di:waypoint x="647" y="220" />
+        <di:waypoint x="665" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13nl8nc_di" bpmnElement="FlowA">
+        <di:waypoint x="715" y="220" />
+        <di:waypoint x="742" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01mc20n_di" bpmnElement="Flow_01mc20n">
+        <di:waypoint x="690" y="195" />
+        <di:waypoint x="690" y="168" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_0yx26qv_di" bpmnElement="DataInputAssociation_0yx26qv">
+        <di:waypoint x="362" y="150" />
+        <di:waypoint x="337" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_01b1b31_di" bpmnElement="DataInputAssociation_01b1b31">
+        <di:waypoint x="304" y="155" />
+        <di:waypoint x="304" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_0v3xdc7_di" bpmnElement="DataInputAssociation_0v3xdc7">
+        <di:waypoint x="258" y="153" />
+        <di:waypoint x="279" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0za4yy4_di" bpmnElement="Flow_0za4yy4">
+        <di:waypoint x="360" y="240" />
+        <di:waypoint x="547" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1clw500_di" bpmnElement="DataOutputAssociation_1clw500">
+        <di:waypoint x="360" y="190" />
+        <di:waypoint x="452" y="190" />
+        <di:waypoint x="452" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_0qcb4uz_di" bpmnElement="DataInputAssociation_0qcb4uz">
+        <di:waypoint x="468" y="130" />
+        <di:waypoint x="570" y="130" />
+        <di:waypoint x="570" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_0a5ja4e_di" bpmnElement="DataInputAssociation_0a5ja4e">
+        <di:waypoint x="610" y="155" />
+        <di:waypoint x="611" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Group_182fafa_di" bpmnElement="Group_182fafa">
+        <dc:Bounds x="145" y="41" width="670" height="250" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="160" y="47" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

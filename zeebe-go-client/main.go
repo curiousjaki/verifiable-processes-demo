@@ -21,35 +21,30 @@ var (
 	addr = flag.String("addr", "localhost:50051", "the risczero address to connect to")
 )
 
-func getVariablesAndFlags() (proving_service *bool, verification_service *bool) {
+func getVariablesAndFlags() (proving_service *bool, verification_service *bool, message_service *bool) {
 	proving_service = flag.Bool("run-proving-service", false, "run the proving service")
 	verification_service = flag.Bool("run-verification-service", false, "run the verification service")
+	message_service = flag.Bool("run-message-service", false, "run the message service")
 	flag.Parse()
-	println(*proving_service, *verification_service)
-	return proving_service, verification_service
+	println(*proving_service, *verification_service, *message_service)
+	return proving_service, verification_service, message_service
 }
-
-// StringToUint32Slice converts a string representation of a slice of uint32s into an actual []uint32.
-func StringToUint32Slice(s string) ([]uint32, error) {
-	// Remove the square brackets from the string
-	s = strings.Trim(s, "[]")
-
-	// Split the string into individual number strings
-	numberStrings := strings.Fields(s)
-
-	// Create a slice to hold the uint32 values
-	uint32Slice := make([]uint32, len(numberStrings))
-
-	// Convert each number string to a uint32 and store it in the slice
-	for i, numStr := range numberStrings {
-		num, err := strconv.ParseUint(numStr, 10, 32)
+func stringToUint32Array(s string) []uint32 {
+	log.Println(s)
+	var uint32Array []uint32
+	s = strings.ReplaceAll(s, "[", "")
+	s = strings.ReplaceAll(s, "]", "")
+	for _, si := range strings.Split(s, ",") {
+		si = strings.ReplaceAll(si, ",", "")
+		si = strings.TrimSpace(si)
+		ui, err := strconv.ParseUint(si, 10, 32)
 		if err != nil {
-			return nil, err
+			log.Println(err)
+			panic(err)
 		}
-		uint32Slice[i] = uint32(num)
+		uint32Array = append(uint32Array, uint32(ui))
 	}
-
-	return uint32Slice, nil
+	return uint32Array
 }
 
 func failJob(client worker.JobClient, job entities.Job) {
@@ -63,7 +58,7 @@ func failJob(client worker.JobClient, job entities.Job) {
 }
 
 func main() {
-	run_proving_service, run_verification_service := getVariablesAndFlags()
+	run_proving_service, run_verification_service, run_message_service := getVariablesAndFlags()
 	config := zbc.ClientConfig{UsePlaintextConnection: true, GatewayAddress: "localhost:26500"}
 	client, err := zbc.NewClient(&config)
 	if err != nil {
@@ -77,18 +72,25 @@ func main() {
 	}
 	fmt.Println("Connected to " + response.GetBrokers()[0].GetHost())
 
-	var provingServiceJobWorker, verificationServiceJobWorker worker.JobWorker
+	var provingServiceJobWorker, verificationServiceJobWorker, messageServiceJobWorker worker.JobWorker
 	if *run_proving_service {
 		provingServiceJobWorker = client.NewJobWorker().
 			JobType("proving-service").
-			Handler(proveCarbonEmissionCalculation).
+			Handler(proveComputationHandler).
 			MaxJobsActive(1).
 			Open()
 	}
 	if *run_verification_service {
 		verificationServiceJobWorker = client.NewJobWorker().
 			JobType("verification-service").
-			Handler(verifyCarbonEmissionCalculation).
+			Handler(verifyComputationHandler).
+			MaxJobsActive(1).
+			Open()
+	}
+	if *run_message_service {
+		messageServiceJobWorker = client.NewJobWorker().
+			JobType("message-service").
+			Handler(publishMessageHandler(client, "Message-Verifiable-Computation")).
 			MaxJobsActive(1).
 			Open()
 	}
@@ -107,5 +109,9 @@ func main() {
 	if *run_verification_service {
 		verificationServiceJobWorker.Close()
 		verificationServiceJobWorker.AwaitClose()
+	}
+	if *run_message_service {
+		messageServiceJobWorker.Close()
+		messageServiceJobWorker.AwaitClose()
 	}
 }
