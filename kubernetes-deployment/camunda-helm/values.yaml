@@ -1,0 +1,21 @@
+namespace: camunda
+elasticsearch:
+  version: 8.14.1
+
+camunda:
+  platform:
+    version: 8.5.2
+  optimize:
+    version: 8.5.2
+  connectors:
+    version: 8.5.3
+  web-modeler:
+    version: 8.5.3
+
+zeebe:
+  authenticationMode: none
+  clientId: zeebe
+  clientSecret: zecret
+  authorizations:
+    resourceBased: false
+  multiTenancy: false

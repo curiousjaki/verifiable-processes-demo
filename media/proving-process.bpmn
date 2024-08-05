@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1msosok" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.19.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.4.0">
+  <bpmn:process id="verification-process" isExecutable="true">
+    <bpmn:startEvent id="event-start" name="Start Event">
+      <bpmn:extensionElements />
+      <bpmn:outgoing>PreflowTask</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="PreflowTask" sourceRef="event-start" targetRef="task-prove-values" />
+    <bpmn:endEvent id="event-receipt-verified" name="receipt verified">
+      <bpmn:incoming>FlowA</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="task-prove-values" name="Prove Values">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="proving-service" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=3" target="variable_a" />
+          <zeebe:input source="=30" target="variable_b" />
+          <zeebe:input source="=&#34;multiplication&#34;" target="operation" />
+          <zeebe:input target="image_id" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>PreflowTask</bpmn:incoming>
+      <bpmn:outgoing>FlowPreVerify</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="FlowPreVerify" sourceRef="task-prove-values" targetRef="task-verify-values" />
+    <bpmn:exclusiveGateway id="x-or-gateway" name="Verification Succeeds?" default="FlowDefault">
+      <bpmn:incoming>FlowPreGateway</bpmn:incoming>
+      <bpmn:outgoing>FlowA</bpmn:outgoing>
+      <bpmn:outgoing>FlowDefault</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="FlowA" sourceRef="x-or-gateway" targetRef="event-receipt-verified">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=co2emission&gt;=20</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="FlowDefault" sourceRef="x-or-gateway" targetRef="event-receipt-cant-verify" />
+    <bpmn:sequenceFlow id="FlowPreGateway" sourceRef="task-verify-values" targetRef="x-or-gateway" />
+    <bpmn:serviceTask id="task-verify-values" name="Verify Values">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="verification-service" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>FlowPreVerify</bpmn:incoming>
+      <bpmn:outgoing>FlowPreGateway</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="event-receipt-cant-verify" name="receipt does not verify">
+      <bpmn:incoming>FlowDefault</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0hyfwum" errorRef="Error_1kmg69a" />
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmn:error id="Error_1kmg69a" name="Receipt doesnt verify" errorCode="412" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="verification-process">
+      <bpmndi:BPMNShape id="Activity_15oyqef_di" bpmnElement="task-prove-values">
+        <dc:Bounds x="220" y="147" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0hr1r4k_di" bpmnElement="task-verify-values">
+        <dc:Bounds x="340" y="147" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="event-start">
+        <dc:Bounds x="162" y="169" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="153" y="212" width="55" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_01w2u8t_di" bpmnElement="x-or-gateway" isMarkerVisible="true">
+        <dc:Bounds x="465" y="162" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="533" y="180" width="55" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0eps209_di" bpmnElement="event-receipt-cant-verify">
+        <dc:Bounds x="542" y="251" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="521" y="294" width="79" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1sx9b8w_di" bpmnElement="event-receipt-verified">
+        <dc:Bounds x="542" y="92" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="524" y="68" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0drbt80_di" bpmnElement="PreflowTask">
+        <di:waypoint x="198" y="187" />
+        <di:waypoint x="220" y="187" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zlpzcr_di" bpmnElement="FlowPreVerify">
+        <di:waypoint x="320" y="187" />
+        <di:waypoint x="340" y="187" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13nl8nc_di" bpmnElement="FlowA">
+        <di:waypoint x="490" y="162" />
+        <di:waypoint x="490" y="110" />
+        <di:waypoint x="542" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0npcmcd_di" bpmnElement="FlowPreGateway">
+        <di:waypoint x="440" y="187" />
+        <di:waypoint x="465" y="187" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1g59jf9_di" bpmnElement="FlowDefault">
+        <di:waypoint x="490" y="212" />
+        <di:waypoint x="490" y="269" />
+        <di:waypoint x="542" y="269" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
