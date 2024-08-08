@@ -1,5 +1,5 @@
 [package]
-name = "carbon_accounting"
+name = "verifiable_processing"
 version = "0.1.0"
 edition = "2021"
 
