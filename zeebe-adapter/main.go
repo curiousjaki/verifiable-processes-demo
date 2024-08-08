@@ -20,9 +20,9 @@ var (
 )
 
 func getVariablesAndFlags() (proving_service *bool, verification_service *bool, message_service *bool, zeebe_addr *string) {
-	proving_service = flag.Bool("prove", false, "run the proving service")
-	verification_service = flag.Bool("verify", false, "run the verification service")
-	message_service = flag.Bool("message", false, "run the message service")
+	proving_service = flag.Bool("prove", true, "run the proving service")
+	verification_service = flag.Bool("verify", true, "run the verification service")
+	message_service = flag.Bool("message", true, "run the message service")
 	zeebe_addr = flag.String("zeebe", "localhost:26500", "the address of the zeebe cluster")
 	flag.Parse()
 	println(*proving_service, *verification_service, *message_service, *zeebe_addr)
@@ -58,7 +58,7 @@ func failJob(client worker.JobClient, job entities.Job) {
 
 func main() {
 	run_proving_service, run_verification_service, run_message_service, zeebe_addr := getVariablesAndFlags()
-	config := zbc.ClientConfig{UsePlaintextConnection: true, GatewayAddress: zeebe_addr}
+	config := zbc.ClientConfig{UsePlaintextConnection: true, GatewayAddress: *zeebe_addr}
 	client, err := zbc.NewClient(&config)
 	if err != nil {
 		panic(err)
