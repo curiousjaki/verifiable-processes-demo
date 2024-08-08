@@ -20,5 +20,4 @@ spec:
           ports:
             - containerPort: 50051
               protocol: TCP
-        - env: 
       restartPolicy: Always
