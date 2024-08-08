@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1yk4yud" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.19.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.4.0">
+  <bpmn:collaboration id="Proving-Verification-Collaboration">
+    <bpmn:participant id="data-producer" name="Data Producer" processRef="prove-computation" />
+    <bpmn:participant id="data-consumer" name="Data Consumer" processRef="verify-computation" />
+    <bpmn:messageFlow id="Flow_0n8ur7y" sourceRef="message-send-event" targetRef="Event_1tsv8nr" />
+  </bpmn:collaboration>
+  <bpmn:process id="prove-computation" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_02sgbux</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_1gcijn6" name="Prove">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="proving-service" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=6" target="variable_a" />
+          <zeebe:input source="=7" target="variable_b" />
+          <zeebe:input source="=&#34;multiply&#34;" target="operation" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="image_id" value="[3540363496, 2907358395, 2242233573, 2268119365, 1907064596, 1439264142, 866585251, 2760140908]" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_02sgbux</bpmn:incoming>
+      <bpmn:outgoing>Flow_04qelpm</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_02sgbux" sourceRef="StartEvent_1" targetRef="Activity_1gcijn6" />
+    <bpmn:sequenceFlow id="Flow_04qelpm" sourceRef="Activity_1gcijn6" targetRef="message-send-event" />
+    <bpmn:endEvent id="message-send-event">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="message-service" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_04qelpm</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1dv1v5e" />
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmn:process id="verify-computation" isExecutable="true">
+    <bpmn:serviceTask id="Activity_0xx0a89" name="Verify">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="verification-service" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="image_id" value="[3540363496, 2907358395, 2242233573, 2268119365, 1907064596, 1439264142, 866585251, 2760140908]" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_09sstt1</bpmn:incoming>
+      <bpmn:outgoing>Flow_1du89fc</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Verification-Gateway" name="is valid computation?" default="Flow_1bsfcj8">
+      <bpmn:incoming>Flow_1du89fc</bpmn:incoming>
+      <bpmn:outgoing>Flow_1bsfcj8</bpmn:outgoing>
+      <bpmn:outgoing>valid-flow</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="Event_Verification_Error" name="verification error">
+      <bpmn:incoming>Flow_1bsfcj8</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_1dr3ui7" errorRef="Error_1bfbtm4" />
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End-Event" name="receipt verified">
+      <bpmn:incoming>Flow_097tum4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_09sstt1" sourceRef="Event_1tsv8nr" targetRef="Activity_0xx0a89" />
+    <bpmn:sequenceFlow id="Flow_1du89fc" sourceRef="Activity_0xx0a89" targetRef="Verification-Gateway" />
+    <bpmn:sequenceFlow id="Flow_1bsfcj8" sourceRef="Verification-Gateway" targetRef="Event_Verification_Error" />
+    <bpmn:sequenceFlow id="valid-flow" name="true" sourceRef="Verification-Gateway" targetRef="Activity_07vo0mv">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=is_valid_executed=true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_097tum4" sourceRef="Activity_07vo0mv" targetRef="End-Event" />
+    <bpmn:startEvent id="Event_1tsv8nr">
+      <bpmn:outgoing>Flow_09sstt1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1lad26m" messageRef="Message_13idln7" />
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_07vo0mv" name="Do Sub-Process">
+      <bpmn:incoming>valid-flow</bpmn:incoming>
+      <bpmn:outgoing>Flow_097tum4</bpmn:outgoing>
+    </bpmn:task>
+  </bpmn:process>
+  <bpmn:error id="Error_1bfbtm4" name="Verification Error" errorCode="500" />
+  <bpmn:message id="Message_13idln7" name="Message-Verifiable-Computation" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Proving-Verification-Collaboration">
+      <bpmndi:BPMNShape id="Participant_0edl0do_di" bpmnElement="data-producer" isHorizontal="true">
+        <dc:Bounds x="158" y="60" width="302" height="210" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="212" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1oq2geq_di" bpmnElement="Activity_1gcijn6">
+        <dc:Bounds x="270" y="150" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0pc0qbf_di" bpmnElement="message-send-event">
+        <dc:Bounds x="392" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_02sgbux_di" bpmnElement="Flow_02sgbux">
+        <di:waypoint x="248" y="190" />
+        <di:waypoint x="270" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04qelpm_di" bpmnElement="Flow_04qelpm">
+        <di:waypoint x="370" y="190" />
+        <di:waypoint x="392" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_11bil3b_di" bpmnElement="data-consumer" isHorizontal="true">
+        <dc:Bounds x="480" y="60" width="600" height="210" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0j3owu3_di" bpmnElement="Activity_0xx0a89">
+        <dc:Bounds x="640" y="150" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0hl493j_di" bpmnElement="Verification-Gateway" isMarkerVisible="true">
+        <dc:Bounds x="795" y="165" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="787" y="222" width="67" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1nlcofn_di" bpmnElement="Event_Verification_Error">
+        <dc:Bounds x="802" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="780" y="72" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0hdx72z_di" bpmnElement="End-Event">
+        <dc:Bounds x="1012" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="994" y="215" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_19hi86b_di" bpmnElement="Event_1tsv8nr">
+        <dc:Bounds x="562" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_043yrgh_di" bpmnElement="Activity_07vo0mv">
+        <dc:Bounds x="880" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_09sstt1_di" bpmnElement="Flow_09sstt1">
+        <di:waypoint x="598" y="190" />
+        <di:waypoint x="640" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1du89fc_di" bpmnElement="Flow_1du89fc">
+        <di:waypoint x="740" y="190" />
+        <di:waypoint x="795" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1bsfcj8_di" bpmnElement="Flow_1bsfcj8">
+        <di:waypoint x="820" y="165" />
+        <di:waypoint x="820" y="138" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0jonf0m_di" bpmnElement="valid-flow">
+        <di:waypoint x="845" y="190" />
+        <di:waypoint x="880" y="190" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="850" y="174" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_097tum4_di" bpmnElement="Flow_097tum4">
+        <di:waypoint x="980" y="190" />
+        <di:waypoint x="1012" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0n8ur7y_di" bpmnElement="Flow_0n8ur7y">
+        <di:waypoint x="428" y="190" />
+        <di:waypoint x="562" y="190" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,8 @@
+name: camunda
+description: A helm chart to deploy a development environment of the camunda platform 8.14
+version: 0.0.1
+apiVersion: v2
+keywords:
+  - camunda
+sources: [https://www.github.com/curiousjaki]
+home: https://www.github.com/curiousjaki

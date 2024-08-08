@@ -1,26 +1,23 @@
 apiVersion: skaffold/v4beta11
 kind: Config
 metadata:
-  name: verifiable-process
+  name: verifiable-processing
 build:
   artifacts:
     - image: provingservice
-      context: verifiable-computation-service
+      context: risczero-backend
       docker:
         dockerfile: Dockerfile
 deploy:
   helm:
     releases:
-      - name: compose
-        chartPath: verifiable-computation-service/compose
-        version: 0.0.1
-      - name: helm
-        chartPath: camunda-platform/helm
+      - name: camunda
+        chartPath: helm-charts/camunda
         valuesFiles:
-          - camunda-platform/helm/values.yaml
+          - helm-charts/camunda/values.yaml
         version: 0.0.1
-      - name: helm
-        chartPath: kubernetes-deployment/helm
-        valuesFiles:
-          - kubernetes-deployment/helm/values.yaml
+      - name: verifiable-proessing
+        chartPath: helm-charts/verifiable-processing
+        #valuesFiles:
+        #  - helm-charts/verifiable-processing/values.yaml
         version: 0.0.1
