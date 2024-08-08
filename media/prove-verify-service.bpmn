@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1yk4yud" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.19.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.4.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:tilt="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1yk4yud" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.19.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.4.0">
   <bpmn:collaboration id="Proving-Verification-Collaboration">
     <bpmn:participant id="data-producer" name="Data Producer" processRef="prove-computation" />
     <bpmn:participant id="data-consumer" name="Data Consumer" processRef="verify-computation" />
-    <bpmn:messageFlow id="Flow_0n8ur7y" sourceRef="message-send-event" targetRef="Event_1tsv8nr" />
+    <bpmn:messageFlow id="Flow_0n8ur7y" sourceRef="message-send-event" targetRef="message-receive-event" />
   </bpmn:collaboration>
   <bpmn:process id="prove-computation" isExecutable="true">
-    <bpmn:startEvent id="StartEvent_1">
+    <bpmn:startEvent id="producer-start-event">
       <bpmn:outgoing>Flow_02sgbux</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:serviceTask id="Activity_1gcijn6" name="Prove">
+    <bpmn:serviceTask id="prove-activity" name="Prove">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="proving-service" />
         <zeebe:ioMapping>
@@ -20,13 +20,19 @@
         <zeebe:taskHeaders>
           <zeebe:header key="image_id" value="[3540363496, 2907358395, 2242233573, 2268119365, 1907064596, 1439264142, 866585251, 2760140908]" />
         </zeebe:taskHeaders>
+        <zeebe:properties>
+          <zeebe:property name="Test" value="User" />
+        </zeebe:properties>
+        <tilt:meta>
+        <tilt:dataController name="Tele" sirname="Tubby"/>
+        </tilt:meta>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_02sgbux</bpmn:incoming>
       <bpmn:outgoing>Flow_04qelpm</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="Flow_02sgbux" sourceRef="StartEvent_1" targetRef="Activity_1gcijn6" />
-    <bpmn:sequenceFlow id="Flow_04qelpm" sourceRef="Activity_1gcijn6" targetRef="message-send-event" />
-    <bpmn:endEvent id="message-send-event">
+    <bpmn:sequenceFlow id="Flow_02sgbux" sourceRef="producer-start-event" targetRef="prove-activity" />
+    <bpmn:sequenceFlow id="Flow_04qelpm" sourceRef="prove-activity" targetRef="message-send-event" />
+    <bpmn:endEvent id="message-send-event" name="send data">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="message-service" />
       </bpmn:extensionElements>
@@ -35,7 +41,7 @@
     </bpmn:endEvent>
   </bpmn:process>
   <bpmn:process id="verify-computation" isExecutable="true">
-    <bpmn:serviceTask id="Activity_0xx0a89" name="Verify">
+    <bpmn:serviceTask id="verifiy-activity" name="Verify">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="verification-service" />
         <zeebe:taskHeaders>
@@ -45,70 +51,33 @@
       <bpmn:incoming>Flow_09sstt1</bpmn:incoming>
       <bpmn:outgoing>Flow_1du89fc</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Verification-Gateway" name="is valid computation?" default="Flow_1bsfcj8">
+    <bpmn:exclusiveGateway id="verification-gateway" name="is valid computation?" default="default-error-flow">
       <bpmn:incoming>Flow_1du89fc</bpmn:incoming>
-      <bpmn:outgoing>Flow_1bsfcj8</bpmn:outgoing>
+      <bpmn:outgoing>default-error-flow</bpmn:outgoing>
       <bpmn:outgoing>valid-flow</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:endEvent id="Event_Verification_Error" name="verification error">
-      <bpmn:incoming>Flow_1bsfcj8</bpmn:incoming>
+    <bpmn:endEvent id="verification-error-event" name="verification error">
+      <bpmn:incoming>default-error-flow</bpmn:incoming>
       <bpmn:errorEventDefinition id="ErrorEventDefinition_1dr3ui7" errorRef="Error_1bfbtm4" />
     </bpmn:endEvent>
-    <bpmn:endEvent id="End-Event" name="receipt verified">
+    <bpmn:endEvent id="consumer-end-event" name="receipt verified">
       <bpmn:incoming>Flow_097tum4</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_09sstt1" sourceRef="Event_1tsv8nr" targetRef="Activity_0xx0a89" />
-    <bpmn:sequenceFlow id="Flow_1du89fc" sourceRef="Activity_0xx0a89" targetRef="Verification-Gateway" />
-    <bpmn:sequenceFlow id="Flow_1bsfcj8" sourceRef="Verification-Gateway" targetRef="Event_Verification_Error" />
-    <bpmn:sequenceFlow id="valid-flow" name="true" sourceRef="Verification-Gateway" targetRef="Activity_07vo0mv">
+    <bpmn:sequenceFlow id="Flow_09sstt1" sourceRef="message-receive-event" targetRef="verifiy-activity" />
+    <bpmn:sequenceFlow id="Flow_1du89fc" sourceRef="verifiy-activity" targetRef="verification-gateway" />
+    <bpmn:sequenceFlow id="default-error-flow" sourceRef="verification-gateway" targetRef="verification-error-event" />
+    <bpmn:sequenceFlow id="valid-flow" name="true" sourceRef="verification-gateway" targetRef="do-sub-process-activity">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=is_valid_executed=true</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_097tum4" sourceRef="Activity_07vo0mv" targetRef="End-Event" />
-    <bpmn:startEvent id="Event_1tsv8nr">
+    <bpmn:sequenceFlow id="Flow_097tum4" sourceRef="do-sub-process-activity" targetRef="consumer-end-event" />
+    <bpmn:startEvent id="message-receive-event" name="receive-data">
       <bpmn:outgoing>Flow_09sstt1</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_1lad26m" messageRef="Message_13idln7" />
     </bpmn:startEvent>
-    <bpmn:subProcess id="Activity_07vo0mv" name="Do Sub-Process">
+    <bpmn:task id="do-sub-process-activity" name="Do Sub-Process">
       <bpmn:incoming>valid-flow</bpmn:incoming>
       <bpmn:outgoing>Flow_097tum4</bpmn:outgoing>
-      <bpmn:startEvent id="Event_10b07ri">
-        <bpmn:outgoing>Flow_05azrh7</bpmn:outgoing>
-      </bpmn:startEvent>
-      <bpmn:task id="Activity_09rwg1s" name="General Task">
-        <bpmn:incoming>Flow_05azrh7</bpmn:incoming>
-        <bpmn:outgoing>Flow_0rbkbiv</bpmn:outgoing>
-      </bpmn:task>
-      <bpmn:sequenceFlow id="Flow_05azrh7" sourceRef="Event_10b07ri" targetRef="Activity_09rwg1s" />
-      <bpmn:endEvent id="Event_0r4o27m">
-        <bpmn:incoming>Flow_0gu1d23</bpmn:incoming>
-      </bpmn:endEvent>
-      <bpmn:exclusiveGateway id="Gateway_006vvta" default="Flow_0hfttu3">
-        <bpmn:incoming>Flow_0rbkbiv</bpmn:incoming>
-        <bpmn:outgoing>Flow_0hfttu3</bpmn:outgoing>
-        <bpmn:outgoing>Flow_0dqw10p</bpmn:outgoing>
-      </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="Flow_0rbkbiv" sourceRef="Activity_09rwg1s" targetRef="Gateway_006vvta" />
-      <bpmn:task id="Activity_013k7ur" name="Task A">
-        <bpmn:incoming>Flow_0hfttu3</bpmn:incoming>
-        <bpmn:outgoing>Flow_0c6rmcr</bpmn:outgoing>
-      </bpmn:task>
-      <bpmn:sequenceFlow id="Flow_0hfttu3" sourceRef="Gateway_006vvta" targetRef="Activity_013k7ur" />
-      <bpmn:task id="Activity_0lug6q0" name="Task B">
-        <bpmn:incoming>Flow_0dqw10p</bpmn:incoming>
-        <bpmn:outgoing>Flow_1c0h0au</bpmn:outgoing>
-      </bpmn:task>
-      <bpmn:sequenceFlow id="Flow_0dqw10p" sourceRef="Gateway_006vvta" targetRef="Activity_0lug6q0">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=is_correctly_processed=ture</bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
-      <bpmn:exclusiveGateway id="Gateway_0rpfjn2">
-        <bpmn:incoming>Flow_0c6rmcr</bpmn:incoming>
-        <bpmn:incoming>Flow_1c0h0au</bpmn:incoming>
-        <bpmn:outgoing>Flow_0gu1d23</bpmn:outgoing>
-      </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="Flow_0c6rmcr" sourceRef="Activity_013k7ur" targetRef="Gateway_0rpfjn2" />
-      <bpmn:sequenceFlow id="Flow_1c0h0au" sourceRef="Activity_0lug6q0" targetRef="Gateway_0rpfjn2" />
-      <bpmn:sequenceFlow id="Flow_0gu1d23" sourceRef="Gateway_0rpfjn2" targetRef="Event_0r4o27m" />
-    </bpmn:subProcess>
+    </bpmn:task>
   </bpmn:process>
   <bpmn:error id="Error_1bfbtm4" name="Verification Error" errorCode="500" />
   <bpmn:message id="Message_13idln7" name="Message-Verifiable-Computation" />
@@ -118,15 +87,18 @@
         <dc:Bounds x="158" y="60" width="302" height="210" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="producer-start-event">
         <dc:Bounds x="212" y="172" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1oq2geq_di" bpmnElement="Activity_1gcijn6">
+      <bpmndi:BPMNShape id="Activity_1oq2geq_di" bpmnElement="prove-activity">
         <dc:Bounds x="270" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0pc0qbf_di" bpmnElement="message-send-event">
         <dc:Bounds x="392" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="386" y="215" width="49" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_02sgbux_di" bpmnElement="Flow_02sgbux">
         <di:waypoint x="248" y="190" />
@@ -140,32 +112,35 @@
         <dc:Bounds x="480" y="60" width="600" height="210" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0j3owu3_di" bpmnElement="Activity_0xx0a89">
+      <bpmndi:BPMNShape id="Activity_0j3owu3_di" bpmnElement="verifiy-activity">
         <dc:Bounds x="640" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0hl493j_di" bpmnElement="Verification-Gateway" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="Gateway_0hl493j_di" bpmnElement="verification-gateway" isMarkerVisible="true">
         <dc:Bounds x="795" y="165" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="787" y="222" width="67" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1nlcofn_di" bpmnElement="Event_Verification_Error">
+      <bpmndi:BPMNShape id="Event_1nlcofn_di" bpmnElement="verification-error-event">
         <dc:Bounds x="802" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="780" y="72" width="80" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0hdx72z_di" bpmnElement="End-Event">
+      <bpmndi:BPMNShape id="Event_0hdx72z_di" bpmnElement="consumer-end-event">
         <dc:Bounds x="1012" y="172" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="994" y="215" width="72" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_19hi86b_di" bpmnElement="Event_1tsv8nr">
+      <bpmndi:BPMNShape id="Event_19hi86b_di" bpmnElement="message-receive-event">
         <dc:Bounds x="562" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="550" y="215" width="61" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0a3x7kz_di" bpmnElement="Activity_07vo0mv" isExpanded="false">
+      <bpmndi:BPMNShape id="Activity_043yrgh_di" bpmnElement="do-sub-process-activity">
         <dc:Bounds x="880" y="150" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_09sstt1_di" bpmnElement="Flow_09sstt1">
@@ -176,7 +151,7 @@
         <di:waypoint x="740" y="190" />
         <di:waypoint x="795" y="190" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1bsfcj8_di" bpmnElement="Flow_1bsfcj8">
+      <bpmndi:BPMNEdge id="Flow_1bsfcj8_di" bpmnElement="default-error-flow">
         <di:waypoint x="820" y="165" />
         <di:waypoint x="820" y="138" />
       </bpmndi:BPMNEdge>
@@ -194,66 +169,6 @@
       <bpmndi:BPMNEdge id="Flow_0n8ur7y_di" bpmnElement="Flow_0n8ur7y">
         <di:waypoint x="428" y="190" />
         <di:waypoint x="562" y="190" />
-      </bpmndi:BPMNEdge>
-    </bpmndi:BPMNPlane>
-  </bpmndi:BPMNDiagram>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1e66rdw">
-    <bpmndi:BPMNPlane id="BPMNPlane_0s5irxv" bpmnElement="Activity_07vo0mv">
-      <bpmndi:BPMNShape id="Activity_0lug6q0_di" bpmnElement="Activity_0lug6q0">
-        <dc:Bounds x="428" y="200" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_013k7ur_di" bpmnElement="Activity_013k7ur">
-        <dc:Bounds x="428" y="80" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0rpfjn2_di" bpmnElement="Gateway_0rpfjn2" isMarkerVisible="true">
-        <dc:Bounds x="533" y="155" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_006vvta_di" bpmnElement="Gateway_006vvta" isMarkerVisible="true">
-        <dc:Bounds x="373" y="155" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_09rwg1s_di" bpmnElement="Activity_09rwg1s">
-        <dc:Bounds x="248" y="140" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_10b07ri_di" bpmnElement="Event_10b07ri">
-        <dc:Bounds x="180" y="162" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0r4o27m_di" bpmnElement="Event_0r4o27m">
-        <dc:Bounds x="610" y="162" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_0dqw10p_di" bpmnElement="Flow_0dqw10p">
-        <di:waypoint x="398" y="205" />
-        <di:waypoint x="398" y="240" />
-        <di:waypoint x="428" y="240" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1c0h0au_di" bpmnElement="Flow_1c0h0au">
-        <di:waypoint x="528" y="240" />
-        <di:waypoint x="558" y="240" />
-        <di:waypoint x="558" y="205" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0hfttu3_di" bpmnElement="Flow_0hfttu3">
-        <di:waypoint x="398" y="155" />
-        <di:waypoint x="398" y="120" />
-        <di:waypoint x="428" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0c6rmcr_di" bpmnElement="Flow_0c6rmcr">
-        <di:waypoint x="528" y="120" />
-        <di:waypoint x="558" y="120" />
-        <di:waypoint x="558" y="155" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0gu1d23_di" bpmnElement="Flow_0gu1d23">
-        <di:waypoint x="583" y="180" />
-        <di:waypoint x="610" y="180" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0rbkbiv_di" bpmnElement="Flow_0rbkbiv">
-        <di:waypoint x="348" y="180" />
-        <di:waypoint x="373" y="180" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_05azrh7_di" bpmnElement="Flow_05azrh7">
-        <di:waypoint x="216" y="180" />
-        <di:waypoint x="248" y="180" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
