@@ -13,21 +13,21 @@ fn main() {
     let variable_a: f64 = env::read();
     let variable_b: f64 = env::read();
     let operation: String = env::read();
-    let result = match operation.as_str() {
+    let result: f64 = match operation.as_str() {
         "add" => {
-            variable_a + variable_b;
+            variable_a + variable_b
         }
         "sub" => {
-            variable_a - variable_b;
+            variable_a - variable_b
         }
         "mul" => {
-            variable_a * variable_b;
+            variable_a * variable_b
         }
         "div" => {
-            variable_a / variable_b;
+            variable_a / variable_b
         }
         _ => {
-            0.0;
+            0.0
         }
     };
     // write public output to the journal
