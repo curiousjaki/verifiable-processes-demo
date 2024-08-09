@@ -6,6 +6,8 @@ use methods::{
 //use risc0_zkvm::sha::rust_crypto::Digest;
 use risc0_zkvm::{compute_image_id, default_prover, ExecutorEnv, Receipt};
 use log::{info, warn};
+use env_logger;
+
 //use risc0_zkvm::sha::Digest;
 use std::error::Error;
 use tonic::{transport::Server, Request, Response, Status};
@@ -58,15 +60,15 @@ impl VerifiableProcessingService for MyVerifiableProcessingService {
         let req = request.into_inner();
         info!("Processing a Proving Request");
 
-        match &req.image_id == VERIFIABLE_PROCESSING_ID {
+        let image_id: [u32;8] = match &req.image_id == &VERIFIABLE_PROCESSING_ID.to_vec() {
             true => {
-                let image_id: &Vec<u32> = &req.image_id;
+                req.image_id.try_into().unwrap()
             }
             false => {
                 warn!("The image id is incorrect");
-                let image_id: &Vec<u32> = VERIFIABLE_PROCESSING_ID;
+                VERIFIABLE_PROCESSING_ID
             }
-        }
+        };
 
         let env = ExecutorEnv::builder()
             .write(&req.variable_a)
@@ -83,7 +85,7 @@ impl VerifiableProcessingService for MyVerifiableProcessingService {
 
         // Produce a receipt by proving the specified ELF binary.
         let receipt = prover
-            .prove(env, image_id)
+            .prove(env, VERIFIABLE_PROCESSING_ELF)
             .unwrap();
 
         // TODO: Implement code for retrieving receipt journal here.
@@ -95,7 +97,7 @@ impl VerifiableProcessingService for MyVerifiableProcessingService {
 
         let reply = ProveResponse {
             response_value,
-            image_id: image_id,
+            image_id: image_id.to_vec(),
             receipt: bincode::serialize(&receipt).unwrap(),
         };
         //println!("{:?}",reply);
@@ -148,6 +150,7 @@ impl VerifiableProcessingService for MyVerifiableProcessingService {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    env_logger::init();
     let addr = "0.0.0.0:50051".parse().unwrap();
     let verifiable_processing_service = MyVerifiableProcessingService::default();
 

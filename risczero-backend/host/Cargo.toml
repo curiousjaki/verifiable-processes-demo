@@ -10,6 +10,8 @@ tonic-build = "0.11"
 methods = { path = "../methods" }
 risc0-zkvm = { version = "0.21.0" }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
+env_logger = "0.10"
 serde = "1.0"
 tonic = "0.11"
 prost = "0.12"
