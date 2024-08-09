@@ -4,7 +4,8 @@ use methods::{
     VERIFIABLE_PROCESSING_ELF, VERIFIABLE_PROCESSING_ID
 };
 //use risc0_zkvm::sha::rust_crypto::Digest;
-use risc0_zkvm::{default_prover, ExecutorEnv, Receipt};
+use risc0_zkvm::{compute_image_id, default_prover, ExecutorEnv, Receipt};
+use log::{info, warn};
 //use risc0_zkvm::sha::Digest;
 use std::error::Error;
 use tonic::{transport::Server, Request, Response, Status};
@@ -55,17 +56,24 @@ impl VerifiableProcessingService for MyVerifiableProcessingService {
         request: Request<ProveRequest>,
     ) -> Result<Response<ProveResponse>, Status> {
         let req = request.into_inner();
-        println!("Processing a Proving Request");
-        //println!("{:?}",req);
-        // Implement your logic here
-        //let response_value = req.variable_a + req.variable_b; // Example logic
-        //let image_id = req.image_id;
-        //let receipt = vec![]; // Placeholder for actual receipt generation
+        info!("Processing a Proving Request");
+
+        match &req.image_id == VERIFIABLE_PROCESSING_ID {
+            true => {
+                let image_id: &Vec<u32> = &req.image_id;
+            }
+            false => {
+                warn!("The image id is incorrect");
+                let image_id: &Vec<u32> = VERIFIABLE_PROCESSING_ID;
+            }
+        }
 
         let env = ExecutorEnv::builder()
             .write(&req.variable_a)
             .unwrap()
             .write(&req.variable_b)
+            .unwrap()
+            .write(&req.operation)
             .unwrap()
             .build()
             .unwrap();
@@ -75,7 +83,7 @@ impl VerifiableProcessingService for MyVerifiableProcessingService {
 
         // Produce a receipt by proving the specified ELF binary.
         let receipt = prover
-            .prove(env, VERIFIABLE_PROCESSING_ELF)
+            .prove(env, image_id)
             .unwrap();
 
         // TODO: Implement code for retrieving receipt journal here.
@@ -87,12 +95,12 @@ impl VerifiableProcessingService for MyVerifiableProcessingService {
 
         let reply = ProveResponse {
             response_value,
-            image_id: VERIFIABLE_PROCESSING_ID.to_vec(),
+            image_id: image_id,
             receipt: bincode::serialize(&receipt).unwrap(),
         };
         //println!("{:?}",reply);
         //println!(CARBON_ACCOUNTING_ID.to_vec());
-        println!("Finished a Proving Request");
+        info!("Finished a Proving Request");
         
         Ok(Response::new(reply))
     }
@@ -101,7 +109,7 @@ impl VerifiableProcessingService for MyVerifiableProcessingService {
         &self,
         request: Request<VerifyRequest>,
     ) -> Result<Response<VerifyResponse>, Status> {
-        println!("Processing a verification request");
+        info!("Processing a verification request");
         let req = request.into_inner();
         //println!("{:?}",req);
         //let verification_value = req.verification_value;
@@ -133,7 +141,7 @@ impl VerifiableProcessingService for MyVerifiableProcessingService {
                 // Optionally return early, panic, or perform recovery actions
             }
         }
-        println!("Finished a verification request");
+        info!("Finished a verification request");
         Ok(Response::new(reply))
     }
 }
@@ -143,7 +151,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "0.0.0.0:50051".parse().unwrap();
     let verifiable_processing_service = MyVerifiableProcessingService::default();
 
-    println!("VerifiableProcessingServiceServer listening on {}", addr);
+    info!("VerifiableProcessingServiceServer listening on {}", addr);
+    info!("Proving ELF ID: {:?}", VERIFIABLE_PROCESSING_ID);
 
     Server::builder()
         .add_service(VerifiableProcessingServiceServer::new(verifiable_processing_service))
