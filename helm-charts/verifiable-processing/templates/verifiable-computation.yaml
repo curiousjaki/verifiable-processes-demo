@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: verfifiable-computation-worker
+  name: verifiable-computation-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: verifiable-computation-worker
+  template:
+    metadata:
+      labels:
+        io.kompose.service: verifiable-computation-worker
+    spec:
+      containers:
+        - image: risczero-backend
+          name: risczero-backend
+          ports:
+            - containerPort: 50051
+              protocol: TCP
+        - image: zeebe-adapter
+          name: zeebe-adapter
+          #ports:
+          #  - containerPort: 2650
+          #    protocol: TCP
+          args: ["-prove=true","-verify=true","-message=true","-zeebe=zeebe"]
+          #"-zeebe=zeebe:26500"]
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: verifiable-computation-worker
+  name: verifiable-computation-worker
+spec:
+  ports:
+    - name: "2650"
+      port: 2650
+      targetPort: 2650
+  selector:
+    io.kompose.service: verifiable-computation-worker

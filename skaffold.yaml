@@ -4,8 +4,12 @@ metadata:
   name: verifiable-processing
 build:
   artifacts:
-    - image: provingservice
+    - image: risczero-backend
       context: risczero-backend
+      docker:
+        dockerfile: Dockerfile
+    - image: zeebe-adapter
+      context: zeebe-adapter
       docker:
         dockerfile: Dockerfile
 deploy:
