@@ -1,33 +1,35 @@
-
-# To build run: docker build -f Dockerfile.release --build-arg="RISC0_TOOLCHAIN_VERSION=r0.1.79.0" -t proving-server .
 FROM rust:1.80 AS builder
 
-ARG APP_NAME=proving-server
-#ARG RISC0_TOOLCHAIN_VERSION=r0.1.79.0
+# Install Risc0
+ARG RISC0_VERSION=1.0.5
+RUN cargo install cargo-binstall
+RUN cargo binstall -y --force cargo-risczero@${RISC0_VERSION}
+RUN cargo risczero install
 
+# Install the Protobuf-Compiler
 RUN apt-get update
 RUN apt-get install protobuf-compiler -y
 
-RUN cargo install cargo-binstall
-RUN cargo binstall -y --force cargo-risczero@0.21
-RUN cargo risczero install
-
+#Copy the source code to the container
 COPY ./host/ /app/host
 COPY ./methods/ /app/methods
 COPY ./Cargo.toml /app/Cargo.toml
-#COPY ./target /app/target
+#COPY ./target/release/deps /app/target/release/deps
 WORKDIR /app
 
+#Fetch and build the server
 RUN cargo fetch
 RUN cargo build --release
+
+#Copy the binary to /bin/server
 RUN cp ./target/release/proving-server /bin/server
 
 FROM rust:1.80 AS final
-#ARG RISC0_TOOLCHAIN_VERSION=r0.1.79.0
 
-
+# Install Risc0
+ARG RISC0_VERSION=1.0.5
 RUN cargo install cargo-binstall
-RUN cargo binstall -y --force cargo-risczero@0.21
+RUN cargo binstall -y --force cargo-risczero@${RISC0_VERSION}
 RUN cargo risczero install
 
 # Create a non-privileged user that the app will run under.

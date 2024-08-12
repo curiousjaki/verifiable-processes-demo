@@ -14,12 +14,19 @@ spec:
       labels:
         io.kompose.service: verifiable-computation-worker
     spec:
+      initContainers:
+      - name: init-zeebe
+        image: busybox:1.28
+        command: ['sh', '-c', 'sleep 30']
       containers:
         - image: risczero-backend
           name: risczero-backend
           ports:
             - containerPort: 50051
               protocol: TCP
+          env:
+            - name: RUST_LOG
+              value: info
         - image: zeebe-adapter
           name: zeebe-adapter
           #ports:

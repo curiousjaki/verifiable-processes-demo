@@ -38,14 +38,25 @@ spec:
               value: health
           image: 'camunda/connectors-bundle:{{ .Values.camunda.connectors.version }}'
           imagePullPolicy: IfNotPresent
-          #livenessProbe:
-          #  exec:
-          #    command:
-          #      - curl -f http://localhost:8080/actuator/health/readiness
-          #  failureThreshold: 5
-          #  initialDelaySeconds: 30
-          #  periodSeconds: 30
-          #  timeoutSeconds: 1
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+              #httpHeaders:
+              #- name: Custom-Header
+              #  value: Awesome
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 3
+            #livenessProbe:
+            #  exec:
+            #    command:
+            #      - curl -f http://localhost:8080/actuator/health/readiness
+            #  failureThreshold: 5
+            #  initialDelaySeconds: 30
+            #  periodSeconds: 30
+            #  timeoutSeconds: 1
           name: connectors
           ports:
             - containerPort: 8080

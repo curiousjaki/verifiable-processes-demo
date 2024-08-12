@@ -14,8 +14,8 @@ use tonic::{transport::Server, Request, Response, Status};
 use proto::verifiable_processing_service_server::{VerifiableProcessingService, VerifiableProcessingServiceServer};
 use proto::{ProveRequest, ProveResponse, VerifyRequest, VerifyResponse};
 
-use std::fs::File;
-use std::io::{self, Write};
+//use std::fs::File;
+//use std::io::{self, Write};
 
 pub mod proto {
     tonic::include_proto!("verifiableprocessing");
@@ -91,14 +91,14 @@ impl VerifiableProcessingService for MyVerifiableProcessingService {
         // TODO: Implement code for retrieving receipt journal here.
 
         // For example:
-        let response_value : f64 = receipt.journal.decode().unwrap();
+        let response_value : f64 = receipt.receipt.journal.decode().unwrap();
         //write_vec_to_file("prove.txt", bincode::serialize(&receipt).unwrap()).expect("whatever");
         //print_type_of(&bincode::serialize(&receipt).unwrap());
 
         let reply = ProveResponse {
             response_value,
             image_id: image_id.to_vec(),
-            receipt: bincode::serialize(&receipt).unwrap(),
+            receipt: bincode::serialize(&receipt.receipt).unwrap(),
         };
         //println!("{:?}",reply);
         //println!(CARBON_ACCOUNTING_ID.to_vec());
