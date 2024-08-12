@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 
@@ -29,7 +27,7 @@ func getVariablesAndFlags() (proving_service *bool, verification_service *bool, 
 	return proving_service, verification_service, message_service, zeebe_addr
 }
 func stringToUint32Array(s string) []uint32 {
-	log.Println(s)
+	//log.Println(s)
 	var uint32Array []uint32
 	s = strings.ReplaceAll(s, "[", "")
 	s = strings.ReplaceAll(s, "]", "")
@@ -58,6 +56,7 @@ func failJob(client worker.JobClient, job entities.Job) {
 
 func main() {
 	run_proving_service, run_verification_service, run_message_service, zeebe_addr := getVariablesAndFlags()
+	fmt.Println(*zeebe_addr)
 	config := zbc.ClientConfig{UsePlaintextConnection: true, GatewayAddress: *zeebe_addr}
 	client, err := zbc.NewClient(&config)
 	if err != nil {
@@ -95,22 +94,22 @@ func main() {
 	}
 
 	// Shut down worker when pushing enter in console
-	buf := bufio.NewReader(os.Stdin)
-	buf.ReadLine()
+	//buf := bufio.NewReader(os.Stdin)
+	//buf.ReadLine()
 
-	fmt.Println("Shutting down...")
+	//fmt.Println("Shutting down...")
 
 	//<-readyClose
 	if *run_proving_service {
-		provingServiceJobWorker.Close()
+		//provingServiceJobWorker.Close()
 		provingServiceJobWorker.AwaitClose()
 	}
 	if *run_verification_service {
-		verificationServiceJobWorker.Close()
+		//verificationServiceJobWorker.Close()
 		verificationServiceJobWorker.AwaitClose()
 	}
 	if *run_message_service {
-		messageServiceJobWorker.Close()
+		//messageServiceJobWorker.Close()
 		messageServiceJobWorker.AwaitClose()
 	}
 }

@@ -37,7 +37,7 @@ func VerifyRequest(verification_value float64, image_id []uint32, receipt []byte
 
 	c := proto.NewVerifiableProcessingServiceClient(conn)
 	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	r, err := c.VerifyExecution(ctx, &request)
@@ -88,7 +88,7 @@ func verifyComputationHandler(client worker.JobClient, job entities.Job) {
 	// The following writes the value variables[receipt] to a file
 
 	if err := os.WriteFile("receipt.txt", receipt, 0666); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	//var image_id []float64

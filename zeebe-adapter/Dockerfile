@@ -14,9 +14,12 @@ WORKDIR /app
 #RUN protoc --proto_path=proto --go_out=proto --go_opt=paths=source_relative --go-grpc_out=proto --go-grpc_opt=paths=source_relative ./proto/verifiable_processing.proto
 
 RUN go get
+COPY client_fix.txt /go/pkg/mod/github.com/camunda/zeebe/clients/go/v8@v8.5.3/pkg/zbc/client.go
 RUN go build -o /bin/server
 
-FROM debian:latest AS final
+FROM debian AS final
+#RUN apt-get update -y
+#RUN apt-get install --reinstall ca-certificates -y
 
 ARG UID=10001
 RUN adduser \
@@ -33,7 +36,7 @@ USER appuser
 COPY --from=build /bin/server /bin/server
 
 # Expose the port that the application listens on.
-EXPOSE 2650
+#EXPOSE 2650
 
 # What the container should run when it is started.
 ENTRYPOINT [ "/bin/server" ]

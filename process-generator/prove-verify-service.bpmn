@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:tilt="github.com/curiousjaki" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1yk4yud" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.19.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.4.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:tilt="github.com/curiousjaki" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1yk4yud" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.25.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.4.0">
   <bpmn:collaboration id="Proving-Verification-Collaboration">
     <bpmn:participant id="data-producer" name="Data Producer" processRef="prove-computation" />
     <bpmn:participant id="data-consumer" name="Data Consumer" processRef="verify-computation" />
@@ -24,7 +24,7 @@
           <zeebe:property name="Test" value="User" />
         </zeebe:properties>
         <tilt:meta>
-        <tilt:dataController name="Tele" sirname="Tubby"/>
+          <tilt:dataController name="Tele" sirname="Tubby" />
         </tilt:meta>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_02sgbux</bpmn:incoming>
@@ -56,10 +56,6 @@
       <bpmn:outgoing>default-error-flow</bpmn:outgoing>
       <bpmn:outgoing>valid-flow</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:endEvent id="verification-error-event" name="verification error">
-      <bpmn:incoming>default-error-flow</bpmn:incoming>
-      <bpmn:errorEventDefinition id="ErrorEventDefinition_1dr3ui7" errorRef="Error_1bfbtm4" />
-    </bpmn:endEvent>
     <bpmn:endEvent id="consumer-end-event" name="receipt verified">
       <bpmn:incoming>Flow_097tum4</bpmn:incoming>
     </bpmn:endEvent>
@@ -78,6 +74,9 @@
       <bpmn:incoming>valid-flow</bpmn:incoming>
       <bpmn:outgoing>Flow_097tum4</bpmn:outgoing>
     </bpmn:task>
+    <bpmn:endEvent id="verification-error-event" name="verification error">
+      <bpmn:incoming>default-error-flow</bpmn:incoming>
+    </bpmn:endEvent>
   </bpmn:process>
   <bpmn:error id="Error_1bfbtm4" name="Verification Error" errorCode="500" />
   <bpmn:message id="Message_13idln7" name="Message-Verifiable-Computation" />
@@ -122,12 +121,6 @@
           <dc:Bounds x="787" y="222" width="67" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1nlcofn_di" bpmnElement="verification-error-event">
-        <dc:Bounds x="802" y="102" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="780" y="72" width="80" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0hdx72z_di" bpmnElement="consumer-end-event">
         <dc:Bounds x="1012" y="172" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -142,6 +135,12 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_043yrgh_di" bpmnElement="do-sub-process-activity">
         <dc:Bounds x="880" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_15zhv2k_di" bpmnElement="verification-error-event">
+        <dc:Bounds x="802" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="776" y="72" width="88" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_09sstt1_di" bpmnElement="Flow_09sstt1">
         <di:waypoint x="598" y="190" />

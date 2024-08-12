@@ -3,14 +3,14 @@
 FROM rust:1.80 AS builder
 
 ARG APP_NAME=proving-server
-ARG RISC0_TOOLCHAIN_VERSION=r0.1.79.0
+#ARG RISC0_TOOLCHAIN_VERSION=r0.1.79.0
 
 RUN apt-get update
 RUN apt-get install protobuf-compiler -y
 
 RUN cargo install cargo-binstall
-RUN cargo binstall -y --force cargo-risczero
-RUN cargo risczero install --version ${RISC0_TOOLCHAIN_VERSION}
+RUN cargo binstall -y --force cargo-risczero@0.21
+RUN cargo risczero install
 
 COPY ./host/ /app/host
 COPY ./methods/ /app/methods
@@ -23,6 +23,12 @@ RUN cargo build --release
 RUN cp ./target/release/proving-server /bin/server
 
 FROM rust:1.80 AS final
+#ARG RISC0_TOOLCHAIN_VERSION=r0.1.79.0
+
+
+RUN cargo install cargo-binstall
+RUN cargo binstall -y --force cargo-risczero@0.21
+RUN cargo risczero install
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/

@@ -32,7 +32,7 @@ func ProveRequest(VariableA float64, VariableB float64, Operation string, ImageI
 
 	c := proto.NewVerifiableProcessingServiceClient(conn)
 	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	r, err := c.ProveExecution(ctx, &request)
 	if err != nil {
@@ -75,7 +75,7 @@ func proveComputationHandler(client worker.JobClient, job entities.Job) {
 
 	var Operation string
 	if variables["operation"] == nil {
-		Operation = "multiply"
+		Operation = "mul"
 	} else {
 		Operation = variables["operation"].(string)
 	}

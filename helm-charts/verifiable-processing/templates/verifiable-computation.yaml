@@ -25,21 +25,21 @@ spec:
           #ports:
           #  - containerPort: 2650
           #    protocol: TCP
-          args: ["-prove=true","-verify=true","-message=true","-zeebe=zeebe"]
+          args: ["-prove=true","-verify=true","-message=true","-zeebe=zeebe.default.svc.cluster.local:26500"]
           #"-zeebe=zeebe:26500"]
       restartPolicy: Always
 
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    io.kompose.service: verifiable-computation-worker
-  name: verifiable-computation-worker
-spec:
-  ports:
-    - name: "2650"
-      port: 2650
-      targetPort: 2650
-  selector:
-    io.kompose.service: verifiable-computation-worker
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  labels:
+#    io.kompose.service: verifiable-computation-worker
+#  name: verifiable-computation-worker
+#spec:
+#  ports:
+#    - name: "2650"
+#      port: 2650
+#      targetPort: 2650
+#  selector:
+#    io.kompose.service: verifiable-computation-worker
