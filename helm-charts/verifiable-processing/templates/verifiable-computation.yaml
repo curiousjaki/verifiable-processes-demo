@@ -17,7 +17,7 @@ spec:
       initContainers:
       - name: init-zeebe
         image: busybox:1.28
-        command: ['sh', '-c', 'sleep 30']
+        command: ['sh', '-c', 'sleep 5'] # This could be a bit more sophisticated but this does the job just fine
       containers:
         - image: risczero-backend
           name: risczero-backend
