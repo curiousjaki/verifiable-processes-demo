@@ -2,7 +2,7 @@
 
 ## Description
 
-This project includes the implementation for the verifiable comnputing in business processes research paper.
+This project includes the implementation for the verifiable computing in business processes research paper.
 I consists of 
 - a Risc0 verifiable computing service written in Rust,
 - a Zeebe workflow engine adapter service written in Go,
@@ -17,3 +17,6 @@ Either reference to the according HELM Chart: (kubernetes-deplyoment/helm/)[kube
 
 ```bash
 # Add installation commands here
+```
+## Caveats 
+- The risczero host and guest versions must match
