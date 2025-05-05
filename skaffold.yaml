@@ -15,11 +15,11 @@ build:
 deploy:
   helm:
     releases:
-      #- name: camunda
-      #  chartPath: helm-charts/camunda
-      #  valuesFiles:
-      #    - helm-charts/camunda/values.yaml
-      #  version: 0.0.1
+      - name: camunda
+        chartPath: helm-charts/camunda
+        valuesFiles:
+          - helm-charts/camunda/values.yaml
+        version: 0.0.1
       - name: verifiable-proessing
         chartPath: helm-charts/verifiable-processing
         #valuesFiles:
