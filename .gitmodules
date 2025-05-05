@@ -1,0 +1,7 @@
+[submodule "poam-server"]
+	path = poam-server
+	url = git@github.com:curiousjaki/poam-server.git
+	branch = pvc
+[submodule "zkvm-ambassador"]
+	path = zkvm-ambassador
+	url = git@github.com:curiousjaki/zkvm-ambassador.git

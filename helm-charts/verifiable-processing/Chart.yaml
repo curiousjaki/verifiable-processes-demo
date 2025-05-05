@@ -1,8 +1,0 @@
-name: verifiable-processing
-description: A generated Helm Chart for compose from Skippbox Kompose
-version: 0.0.1
-apiVersion: v2
-keywords:
-  - verifiable-processing
-sources: [https://www.github.com/curiousjaki]
-home: https://www.github.com/curiousjaki
