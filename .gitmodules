@@ -1,7 +1,9 @@
-[submodule "poam-server"]
-	path = poam-server
-	url = git@github.com:curiousjaki/poam-server.git
-	branch = pvc
-[submodule "zkvm-ambassador"]
-	path = zkvm-ambassador
-	url = git@github.com:curiousjaki/zkvm-ambassador.git
+[submodule "service-task-worker"]
+	path = service-task-worker
+	url = git@github.com:curiousjaki/service-task-worker.git
+[submodule "proof-file-service"]
+	path = proof-file-service
+	url = git@github.com:curiousjaki/proof-file-service.git
+[submodule "zkvm-host"]
+	path = zkvm-host
+	url = git@github.com:curiousjaki/zkvm-host.git
