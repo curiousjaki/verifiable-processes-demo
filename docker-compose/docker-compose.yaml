@@ -176,7 +176,7 @@ services:
     environment:
       - JAVA_OPTS=-Xms512m -Xmx2g
       - ZEEBE_ADDRESS=zeebe:26500
-      - ZKVM_ADDRESS=host.docker.internal:50051
+      - ZKVM_ADDRESS=host.docker.internal
     mem_limit: 4g
     cpus: 2
     depends_on:
