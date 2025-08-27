@@ -2,7 +2,7 @@
 # this docker-compose.yaml is designed to be used by developers to run
 # an environment locally. It is not designed to be used in production.
 # We recommend to use Kubernetes in production with our Helm Charts:
-# https://docs.camunda.io/docs/self-managed/platform-deployment/kubernetes-helm/
+# https://docs.camunda.io/docs/self-managed/setup/install/
 # For local development, we recommend using KIND instead of `docker-compose`:
 # https://docs.camunda.io/docs/self-managed/platform-deployment/helm-kubernetes/guides/local-kubernetes-cluster/
 
@@ -12,7 +12,7 @@
 services:
 
   zeebe: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
-    image: camunda/zeebe:${CAMUNDA_PLATFORM_VERSION}
+    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
     container_name: zeebe
     ports:
       - "26500:26500"
@@ -26,6 +26,7 @@ services:
       # allow running with low disk space
       - ZEEBE_BROKER_DATA_DISKUSAGECOMMANDWATERMARK=0.998
       - ZEEBE_BROKER_DATA_DISKUSAGEREPLICATIONWATERMARK=0.999
+      - CAMUNDA_DATABASE_URL=http://elasticsearch:9200
       - "JAVA_TOOL_OPTIONS=-Xms512m -Xmx512m"
     restart: unless-stopped
     healthcheck:
@@ -42,7 +43,7 @@ services:
       - elasticsearch
 
   operate: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#operate
-    image: camunda/operate:${CAMUNDA_PLATFORM_VERSION}
+    image: camunda/operate:${CAMUNDA_OPERATE_VERSION}
     container_name: operate
     ports:
       - "8081:8080"
@@ -50,10 +51,12 @@ services:
       - CAMUNDA_OPERATE_ZEEBE_GATEWAYADDRESS=zeebe:26500
       - CAMUNDA_OPERATE_ELASTICSEARCH_URL=http://elasticsearch:9200
       - CAMUNDA_OPERATE_ZEEBEELASTICSEARCH_URL=http://elasticsearch:9200
+      - CAMUNDA_OPERATE_CSRFPREVENTIONENABLED=false
+      - CAMUNDA_DATABASE_URL=http://elasticsearch:9200
       - management.endpoints.web.exposure.include=health
       - management.endpoint.health.probes.enabled=true
     healthcheck:
-      test: [ "CMD-SHELL", "wget -O - -q 'http://localhost:8080/actuator/health/readiness'" ]
+      test: [ "CMD-SHELL", "wget -O - -q 'http://localhost:9600/actuator/health/readiness'" ]
       interval: 30s
       timeout: 1s
       retries: 5
@@ -65,7 +68,7 @@ services:
       - elasticsearch
 
   tasklist: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#tasklist
-    image: camunda/tasklist:${CAMUNDA_PLATFORM_VERSION}
+    image: camunda/tasklist:${CAMUNDA_TASKLIST_VERSION}
     container_name: tasklist
     ports:
       - "8082:8080"
@@ -74,10 +77,12 @@ services:
       - CAMUNDA_TASKLIST_ZEEBE_RESTADDRESS=http://zeebe:8080
       - CAMUNDA_TASKLIST_ELASTICSEARCH_URL=http://elasticsearch:9200
       - CAMUNDA_TASKLIST_ZEEBEELASTICSEARCH_URL=http://elasticsearch:9200
+      - CAMUNDA_TASKLIST_CSRFPREVENTIONENABLED=false
+      - CAMUNDA_DATABASE_URL=http://elasticsearch:9200
       - management.endpoints.web.exposure.include=health
       - management.endpoint.health.probes.enabled=true
     healthcheck:
-      test: [ "CMD-SHELL", "wget -O - -q 'http://localhost:8080/actuator/health/readiness'" ]
+      test: [ "CMD-SHELL", "wget -O - -q 'http://localhost:9600/actuator/health/readiness'" ]
       interval: 30s
       timeout: 1s
       retries: 5
@@ -94,11 +99,10 @@ services:
     ports:
       - "8085:8080"
     environment:
-      - ZEEBE_CLIENT_BROKER_GATEWAY-ADDRESS=zeebe:26500
-      - ZEEBE_CLIENT_SECURITY_PLAINTEXT=true
-      - CAMUNDA_OPERATE_CLIENT_URL=http://operate:8080
-      - CAMUNDA_OPERATE_CLIENT_USERNAME=demo
-      - CAMUNDA_OPERATE_CLIENT_PASSWORD=demo
+      - CAMUNDA_CLIENT_MODE=self-managed
+      - CAMUNDA_CLIENT_ZEEBE_GRPCADDRESS=http://zeebe:26500
+      - OPERATE_CLIENT_BASEURL=http://operate:8080
+      - OPERATE_CLIENT_PROFILE=simple
       - management.endpoints.web.exposure.include=health
       - management.endpoint.health.probes.enabled=true
     healthcheck:
@@ -153,13 +157,41 @@ services:
       - camunda-platform
     depends_on:
       - elasticsearch
-#    profiles:
-#      - kibana
+  
+  proof-file-service:
+    image: ghcr.io/curiousjaki/proof-file-service:latest
+    container_name: proof-file-service
+    platform: linux/amd64
+    ports:
+      - "50052:50052"
+    volumes:
+      - proof-file-service:/app/proofs
+    networks:
+      - camunda-platform
+      - default
+  
+  service-task-worker:
+    image: ghcr.io/curiousjaki/service-task-worker:latest
+    container_name: service-task-worker
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx2g
+      - ZEEBE_ADDRESS=zeebe:26500
+      - ZKVM_ADDRESS=host.docker.internal:50051
+    mem_limit: 4g
+    cpus: 2
+    depends_on:
+      - zeebe
+      - proof-file-service
+    networks:
+      - camunda-platform
+      - default
+    command: ["java", "-jar", "stw.jar"]
 
 volumes:
   zeebe:
   elastic:
   kibana:
+  proof-file-service:
 
 networks:
   camunda-platform:

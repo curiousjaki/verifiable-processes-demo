@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_05cxy22" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.29.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:process id="single-step-example" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1y3s1is</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1y3s1is" sourceRef="StartEvent_1" targetRef="combined_activity" />
+    <bpmn:sequenceFlow id="Flow_1pw59g8" sourceRef="combined_activity" targetRef="Activity_0g0pc11" />
+    <bpmn:endEvent id="Event_1rweqpf">
+      <bpmn:incoming>Flow_1h7qme7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1h7qme7" sourceRef="Activity_0g0pc11" targetRef="Event_1rweqpf" />
+    <bpmn:serviceTask id="combined_activity" name="Single Step I">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="combine-job" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=[&#34;{\&#34;a\&#34;:5.0,\&#34;b\&#34;:10.0,\&#34;operation\&#34;:\&#34;Add\&#34;}&#34;,&#34;{\&#34;a\&#34;:2.0,\&#34;b\&#34;:4.0,\&#34;operation\&#34;:\&#34;Mul\&#34;}&#34;]" target="method_payload" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1y3s1is</bpmn:incoming>
+      <bpmn:outgoing>Flow_1pw59g8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_0g0pc11" name="Verify I">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="verify-job" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1pw59g8</bpmn:incoming>
+      <bpmn:outgoing>Flow_1h7qme7</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="single-step-example">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="182" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1rweqpf_di" bpmnElement="Event_1rweqpf">
+        <dc:Bounds x="592" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0rt2tf4_di" bpmnElement="combined_activity">
+        <dc:Bounds x="270" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0qh5qqd_di" bpmnElement="Activity_0g0pc11">
+        <dc:Bounds x="430" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1y3s1is_di" bpmnElement="Flow_1y3s1is">
+        <di:waypoint x="218" y="120" />
+        <di:waypoint x="270" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1pw59g8_di" bpmnElement="Flow_1pw59g8">
+        <di:waypoint x="370" y="120" />
+        <di:waypoint x="430" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1h7qme7_di" bpmnElement="Flow_1h7qme7">
+        <di:waypoint x="530" y="120" />
+        <di:waypoint x="592" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

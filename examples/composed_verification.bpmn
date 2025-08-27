@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1wjaly0" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.29.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:process id="composition-example" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1jgbima</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1jgbima" sourceRef="StartEvent_1" targetRef="proving" />
+    <bpmn:serviceTask id="proving" name="Proving I">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="proving-job" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=&#34;Add&#34;" target="operation" />
+          <zeebe:input source="=5" target="a" />
+          <zeebe:input source="=10" target="b" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1jgbima</bpmn:incoming>
+      <bpmn:outgoing>Flow_15ftffp</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="composition" name="Proving II">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="proving-job" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=&#34;Mul&#34;" target="operation" />
+          <zeebe:input source="=2" target="a" />
+          <zeebe:input source="=4" target="b" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_15ftffp</bpmn:incoming>
+      <bpmn:outgoing>Flow_028ol4h</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_15ftffp" sourceRef="proving" targetRef="composition" />
+    <bpmn:endEvent id="Event_02iozok">
+      <bpmn:incoming>Flow_0hbxy6u</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0hbxy6u" sourceRef="verify" targetRef="Event_02iozok" />
+    <bpmn:serviceTask id="verify" name="Verifiy I">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="verify-job" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0dzxs0p</bpmn:incoming>
+      <bpmn:outgoing>Flow_0hbxy6u</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_028ol4h" sourceRef="composition" targetRef="Activity_0v8nzvk" />
+    <bpmn:sequenceFlow id="Flow_0dzxs0p" sourceRef="Activity_0v8nzvk" targetRef="verify" />
+    <bpmn:serviceTask id="Activity_0v8nzvk" name="Composition I">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="compose-job" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_028ol4h</bpmn:incoming>
+      <bpmn:outgoing>Flow_0dzxs0p</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="composition-example">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="182" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1p47yks_di" bpmnElement="proving">
+        <dc:Bounds x="270" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0vuxwel" bpmnElement="composition">
+        <dc:Bounds x="440" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_02iozok_di" bpmnElement="Event_02iozok">
+        <dc:Bounds x="972" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1e8tghp_di" bpmnElement="verify">
+        <dc:Bounds x="810" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1lyj42q_di" bpmnElement="Activity_0v8nzvk">
+        <dc:Bounds x="630" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1jgbima_di" bpmnElement="Flow_1jgbima">
+        <di:waypoint x="218" y="120" />
+        <di:waypoint x="270" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15ftffp_di" bpmnElement="Flow_15ftffp">
+        <di:waypoint x="370" y="120" />
+        <di:waypoint x="440" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0hbxy6u_di" bpmnElement="Flow_0hbxy6u">
+        <di:waypoint x="910" y="120" />
+        <di:waypoint x="972" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_028ol4h_di" bpmnElement="Flow_028ol4h">
+        <di:waypoint x="540" y="120" />
+        <di:waypoint x="630" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0dzxs0p_di" bpmnElement="Flow_0dzxs0p">
+        <di:waypoint x="730" y="120" />
+        <di:waypoint x="810" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
