@@ -41,7 +41,7 @@ To install this project, follow these steps:
 2. Run the Camunda Platform within Docker:
    ```bash
    docker compose -p zkvm4bpm down
-   docker compose -f camunda-compose/docker-compose.yaml -p zkvm4bpm up -d --pull always
+   docker compose -f docker-compose/docker-compose.yaml -p zkvm4bpm --env-file ./docker-compose/.env up -d --pull always 
    ```
 
 3. Deploy the Camunda platform:
