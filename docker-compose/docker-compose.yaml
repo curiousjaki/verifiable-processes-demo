@@ -169,19 +169,32 @@ services:
     networks:
       - camunda-platform
       - default
+  zkvm-host:
+    image: ghcr.io/curiousjaki/zkvm-host:latest
+    container_name: zkvm-host
+    platform: linux/amd64
+    ports:
+      - "50051:50051"
+    volumes:
+      - zkvm-host:/app/proofs
+    networks:
+      - camunda-platform
+      - default
   
   service-task-worker:
     image: ghcr.io/curiousjaki/service-task-worker:latest
     container_name: service-task-worker
+    platform: linux/amd64
     environment:
       - JAVA_OPTS=-Xms512m -Xmx2g
       - ZEEBE_ADDRESS=zeebe:26500
-      - ZKVM_ADDRESS=host.docker.internal
+      - ZKVM_ADDRESS=zkvm-host
     mem_limit: 4g
     cpus: 2
     depends_on:
       - zeebe
       - proof-file-service
+      - zkvm-host
     networks:
       - camunda-platform
       - default
@@ -192,6 +205,7 @@ volumes:
   elastic:
   kibana:
   proof-file-service:
+  zkvm-host:
 
 networks:
   camunda-platform:
