@@ -42,6 +42,7 @@ To install this project, follow these steps:
    ```bash
    docker compose -p zkvm4bpm down
    docker compose -f docker-compose/docker-compose.yaml -p zkvm4bpm --env-file ./docker-compose/.env up -d --pull always 
+   docker compose -p zkvm4bpm exec -it service-task-worker sh -c "java -jar stw.jar"
    ```
 
 3. Deploy the Camunda platform:

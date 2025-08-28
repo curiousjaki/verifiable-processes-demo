@@ -185,7 +185,7 @@ services:
     networks:
       - camunda-platform
       - default
-    command: ["java", "-jar", "stw.jar"]
+    command: ["sh", "-c", "java -jar stw.jar"]
 
 volumes:
   zeebe:
